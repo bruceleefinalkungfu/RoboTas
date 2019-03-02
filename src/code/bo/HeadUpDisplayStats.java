@@ -7,12 +7,12 @@ import code.constant.RobotConst;
 
 public class HeadUpDisplayStats {
 
-	private boolean isBatteryLow;
-	private boolean isOverweight;
+	private volatile boolean isBatteryLow;
+	private volatile boolean isOverweight;
 	private volatile int batteryPercentage;
 	private Queue<String> barCodeIdQueue;
 	private Queue<Integer> barCodeProductPrice;
-	
+
 	public HeadUpDisplayStats() {
 		barCodeIdQueue = new LinkedList<>();
 		barCodeProductPrice = new LinkedList<>();
