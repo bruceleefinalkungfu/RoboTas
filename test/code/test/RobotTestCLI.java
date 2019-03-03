@@ -155,8 +155,10 @@ public class RobotTestCLI {
 		menu += printRobotBox("| Remaining distance:" + robot.getDistanceToWalkInKM()+" KM", ' ', "|");
 		menu += printRobotBox("| Distance walked:" + robot.getTotalDistanceWalkedInKM()+" KM", ' ', "|");
 		List<String> runningTasks = robot.getRunningTasks();
-		if(! runningTasks.isEmpty())
+		if(! runningTasks.isEmpty()) {
 			menu += printRobotBox("|", '-', "|");
+			menu += printRobotBox("| Running tasks with their id", ' ', "|");
+		}
 		for(String task : runningTasks)
 			menu += printRobotBox("|"+task.replaceAll("Robot", "").replaceAll("Task", ""), ' ' , "|");
 		if(seeCommands) {
