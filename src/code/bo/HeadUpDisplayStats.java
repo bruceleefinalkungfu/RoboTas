@@ -46,7 +46,7 @@ public class HeadUpDisplayStats {
 		return isOverweight;
 	}
 
-	public void setOverweight(boolean isOverweight) {
+	void setOverweight(boolean isOverweight) {
 		this.isOverweight = isOverweight;
 	}
 
@@ -54,7 +54,7 @@ public class HeadUpDisplayStats {
 		return batteryPercentage;
 	}
 
-	public void setBatteryPercentage(int batteryPercentage) {
+	void setBatteryPercentage(int batteryPercentage) {
 		this.batteryPercentage = batteryPercentage;
 		setBatteryLow(batteryPercentage < RobotConst.BATTERY_LOW_PERCENTAGE? true : false);
 		setIsBatteryShutdown(batteryPercentage <= RobotConst.ROBOT_SHUTDOWN_BATTERY_PERCENTAGE? true : false);
