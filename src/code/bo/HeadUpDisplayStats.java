@@ -10,14 +10,21 @@ public class HeadUpDisplayStats {
 	private volatile boolean isOverweight;
 	private volatile int batteryPercentage;
 	
+	private Object batteryShutdownLock;
+	
 	private volatile Boolean isBatteryShutdown;
 	
 	public HeadUpDisplayStats(String robotName) {
 		this.robotName = robotName;
+		this.batteryShutdownLock = new Object();
 		this.isBatteryLow = false;
 		this.isBatteryShutdown = false;
 		this.isOverweight = false;
 		this.batteryPercentage = 100;
+	}
+
+	public Object getBatteryShutdownLock() {
+		return batteryShutdownLock;
 	}
 
 	public Boolean getIsBatteryShutdown() {
@@ -26,8 +33,11 @@ public class HeadUpDisplayStats {
 
 	private void setIsBatteryShutdown(Boolean isBatteryShutdown) {
 		this.isBatteryShutdown = isBatteryShutdown;
-		if(isBatteryShutdown)
-			isBatteryShutdown.notifyAll();
+		if(isBatteryShutdown) {
+			synchronized (batteryShutdownLock) {
+				this.batteryShutdownLock.notify();
+			}
+		}
 	}
 
 	public String getRobotName() {

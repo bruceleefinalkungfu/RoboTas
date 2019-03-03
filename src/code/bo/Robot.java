@@ -1,8 +1,14 @@
 package code.bo;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import code.constant.RobotConst;
@@ -25,7 +31,7 @@ public class Robot {
 	private HeadUpDisplayStats stats;
 	
 	private Robot(String roboName, int noOfThreads) {
-		remainingBatteryInMiliSecond = new AtomicInteger( RobotConst.ROBOT_TOTAL_WALING_BATTERY_LIFE_IN__MILISEC );
+		remainingBatteryInMiliSecond = new AtomicInteger( RobotConst.ROBOT_TOTAL_WALKING_BATTERY_LIFE_IN__MILISEC );
 		stats = new HeadUpDisplayStats(roboName);
 		carryingWeightInGram = new AtomicInteger(0);
 		totalDistanceWalked = new AtomicInteger(0);
@@ -50,8 +56,8 @@ public class Robot {
 	}
 	
 
-	public int getTotalDistanceWalked() {
-		return totalDistanceWalked.get();
+	public double getTotalDistanceWalkedInKM() {
+		return totalDistanceWalked.get() / 1000.0;
 	}
 
 	public int getRemainingBatteryInMiliSecond() {
@@ -74,15 +80,19 @@ public class Robot {
 		return distanceToWalkInMeter.get();
 	}
 
+	public double getDistanceToWalkInKM() {
+		return distanceToWalkInMeter.get() / 1000.0;
+	}
+
 	@Deprecated
 	private void chargeBatteryInMilliSecond(int milliSecond) {
 		drainBatteryInMilliSecond(milliSecond * -1);
 	}
 	
-	private void drainBatteryInMilliSecond(int milliSecond) {
-		this.remainingBatteryInMiliSecond.getAndAdd(milliSecond * -1);
+	public void drainBatteryInMilliSecond(int milliSecond) {
+		this.remainingBatteryInMiliSecond.addAndGet(milliSecond * -1);
 		stats.setBatteryPercentage(
-				MathUtil.round( (remainingBatteryInMiliSecond.get() * 100.0) / RobotConst.ROBOT_TOTAL_WALING_BATTERY_LIFE_IN__MILISEC )
+				MathUtil.round( (remainingBatteryInMiliSecond.get() * 100.0) / RobotConst.ROBOT_TOTAL_WALKING_BATTERY_LIFE_IN__MILISEC )
 			);
 	}
 
@@ -95,10 +105,10 @@ public class Robot {
 	 * @param weight : weight has to be in gram
 	 */
 	private void addWeightInGram(int weight) {
-		int wt = this.carryingWeightInGram.getAndAdd(weight);
-		stats.setOverweight( wt > RobotConst.MAX_WEIGHT_CARRY_LIMIT_IN_KG ? true : false);
+		int wt = this.carryingWeightInGram.addAndGet(weight);
+		stats.setOverweight( wt > RobotConst.MAX_WEIGHT_CARRY_LIMIT_IN_GRAM ? true : false);
 		if(stats.isOverweight())
-			LoggerUtil.log(RobotConst.OVERWEIGHT_MESSAGE + "\n" + "Robot "+getRobotName()+" will not be able to walk because it has " 
+			LoggerUtil.log("Robot "+getRobotName()+" will not be able to walk because it has " 
 					+this.getCarryingWeightInKiloGram() +"kg weight and It can't carry more than "+RobotConst.MAX_WEIGHT_CARRY_LIMIT_IN_KG);
 	}
 
@@ -107,11 +117,12 @@ public class Robot {
 	}
 
 	public void addDistanceToWalkInMeter(int distanceInMeter) {
-		this.distanceToWalkInMeter.getAndAdd(distanceInMeter);
+		this.distanceToWalkInMeter.addAndGet(distanceInMeter);
 	}
 
 	public void subtractDistanceToWalkInMeter(int distanceInMeter) {
 		addDistanceToWalkInMeter(distanceInMeter * -1);
+		this.totalDistanceWalked.addAndGet(distanceInMeter);
 	}
 
 	public HeadUpDisplayStats getStats() {

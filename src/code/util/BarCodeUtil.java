@@ -12,6 +12,10 @@ public class BarCodeUtil {
 		return new BarCode(UUID.randomUUID().toString(), new Object[] {obj});
 	}
 	
+	public static BarCode getBarCode(Object[] obj) {
+		return new BarCode(UUID.randomUUID().toString(), obj);
+	}
+	
 	public static double getPrice(BarCode barCode) throws BarCodeException {
 		if(isBarCodeValid(barCode))
 			return calculatePrice(barCode.getData());
