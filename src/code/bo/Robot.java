@@ -12,6 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import code.constant.RobotConst;
+import code.tasks.RobotTask;
 import code.util.LoggerUtil;
 import code.util.MathUtil;
 
@@ -27,16 +28,33 @@ public class Robot {
 	private AtomicInteger totalDistanceWalked;
 	
 	private ExecutorService pool;
+	private Map<String, RobotTask> currentlyRunningTasks;
+	private Map<String, Future<?>> currentlyRunningFutures;
 	
 	private HeadUpDisplayStats stats;
 	
 	private Robot(String roboName, int noOfThreads) {
 		remainingBatteryInMiliSecond = new AtomicInteger( RobotConst.ROBOT_TOTAL_WALKING_BATTERY_LIFE_IN__MILISEC );
 		stats = new HeadUpDisplayStats(roboName);
+		this.currentlyRunningTasks = new LinkedHashMap<>();
+		this.currentlyRunningFutures = new LinkedHashMap<>();
 		carryingWeightInGram = new AtomicInteger(0);
 		totalDistanceWalked = new AtomicInteger(0);
 		distanceToWalkInMeter = new AtomicInteger(0);
 		pool = Executors.newFixedThreadPool(noOfThreads + 1);
+		// Battery shutdown check thread
+		pool.submit(() -> {
+			try {
+				synchronized( getStats().getBatteryShutdownLock() ) {
+					while(!getStats().getIsBatteryShutdown())
+						getStats().getBatteryShutdownLock().wait();	
+				}
+			} catch(InterruptedException e) {}
+			for(Map.Entry<String, Future<?>> task : currentlyRunningFutures.entrySet()) {
+				Future<?> future = task.getValue();
+				future.cancel(true);
+			}
+		});
 	}
 	
 	public static class Builder {
@@ -109,7 +127,7 @@ public class Robot {
 		stats.setOverweight( wt > RobotConst.MAX_WEIGHT_CARRY_LIMIT_IN_GRAM ? true : false);
 		if(stats.isOverweight())
 			LoggerUtil.log("Robot "+getRobotName()+" will not be able to walk because it has " 
-					+this.getCarryingWeightInKiloGram() +"kg weight and It can't carry more than "+RobotConst.MAX_WEIGHT_CARRY_LIMIT_IN_KG);
+					+this.getCarryingWeightInKiloGram() +" kg weight and It can't carry more than "+RobotConst.MAX_WEIGHT_CARRY_LIMIT_IN_KG);
 	}
 
 	public void dropWeightInKiloGram(double weight) {
@@ -132,5 +150,54 @@ public class Robot {
 	public String getRobotName() {
 		return stats.getRobotName();
 	}
+
+	public void executeTask(RobotTask task) {
+		String taskId = UUID.randomUUID().toString();
+		Runnable runnable = () -> {
+			try {
+				task.beforeTask();
+				while ( ! task.isTaskFinished() ) {
+					task.processTask();
+					Thread.sleep(0);
+				}
+				task.afterTask();
+			} catch (InterruptedException e) {
+			} catch (Exception e) {
+				LoggerUtil.log(e);
+			} finally {
+				removeProcess(taskId);
+			}
+		};
+		if( ! getStats().getIsBatteryShutdown()) {
+			LoggerUtil.log("The "+ task.getClass().getSimpleName()+" with id "+  taskId + " is started" );
+			Future<?> future = pool.submit(runnable);
+			currentlyRunningTasks.put(taskId, task);
+			currentlyRunningFutures.put(taskId, future);
+		} else {
+			LoggerUtil.log(task.getClass().getSimpleName()+" can't be started. Battery Down!");
+		}
+	}
 	
+	public void stopTask(String taskId) {
+		RobotTask robotTask = currentlyRunningTasks.get(taskId);
+		if(robotTask == null)
+			LoggerUtil.log("No such running task with id "+taskId);
+		else
+			robotTask.stopTask();
+	}
+	
+	private void removeProcess(String taskId) {
+		RobotTask robotTask = currentlyRunningTasks.get(taskId);
+		if(robotTask != null)
+			LoggerUtil.log("The "+ robotTask.getClass().getSimpleName()+" with id "+  taskId + " is removed" );
+		currentlyRunningTasks.remove(taskId);
+		currentlyRunningFutures.remove(taskId);
+	}
+	
+	public List<String> getRunningTasks() {
+		List<String> op = new ArrayList<>();
+		for(Map.Entry<String, RobotTask> entry : currentlyRunningTasks.entrySet())
+			op.add(entry.getValue().getClass().getSimpleName() + " "+ entry.getKey());
+		return op;
+	}
 }

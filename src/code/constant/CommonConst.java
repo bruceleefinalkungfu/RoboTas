@@ -12,4 +12,6 @@ public class CommonConst {
 	public static int MILLISECONDS_IN_ONE_SECOND							= 10;
 
 	public static final double EXTRA_BATTERY_PERCENTAGE_DRAINED_PER_KG 		= 2.0;
+	
+	public static final String NEW_LINE										= System.getProperty("line.separator");
 }

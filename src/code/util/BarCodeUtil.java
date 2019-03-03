@@ -8,6 +8,10 @@ import code.exception.BarCodeException;
 
 public class BarCodeUtil {
 	
+	static Random rd = new Random();
+	
+	public static final int TIME_TO_PROCESS_BAR_CODE = 2000;
+	
 	public static BarCode getBarCode(Object obj) {
 		return new BarCode(UUID.randomUUID().toString(), new Object[] {obj});
 	}
@@ -27,11 +31,11 @@ public class BarCodeUtil {
 	 * @return
 	 */
 	private static double calculatePrice(Object[] data) {
-		double price = 0;
+		int price = 0;
 		for(Object obj : data) {
-			try { Thread.sleep(2000); } catch(Exception e) { }
+			try { Thread.sleep(TIME_TO_PROCESS_BAR_CODE); } catch(Exception e) { }
 			if(obj != null)
-				price += obj.hashCode();
+				price += rd.nextInt(10);
 		}
 		return price;
 	}
