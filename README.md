@@ -3,8 +3,9 @@ Content Warning: May contain code
 
 ---Test Entry point---
 
--RobotTestCLI
--TesScenario
+  - RobotTestCLI
+  - TesScenario
+  
 -----------------------
 
 ---Robot----
