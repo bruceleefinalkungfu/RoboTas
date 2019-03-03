@@ -6,8 +6,9 @@ public class RobotConst {
 	public static final String INVALID_BAR_CODE_MESSAGE 		= "Scan Failure";
 	
 	public static final int MAX_WEIGHT_CARRY_LIMIT_IN_KG 		= 10;
-	
+
 	public static final int BATTERY_LOW_PERCENTAGE				= 15;
+	public static final int ROBOT_SHUTDOWN_BATTERY_PERCENTAGE	= 1;
 
 	public static final int ROBOT_TOTAL_WALING_BATTERY_LIFE_IN__MILISEC;
 	public static final int ROBOT_WALK_DISTANCE_IN_METER_BEFORE_BATTERY_DRAINED		= 5000;

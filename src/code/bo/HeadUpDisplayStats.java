@@ -1,23 +1,23 @@
 package code.bo;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
 import code.constant.RobotConst;
 
 public class HeadUpDisplayStats {
 
+	private String robotName;
+	
 	private volatile boolean isBatteryLow;
 	private volatile boolean isOverweight;
 	private volatile int batteryPercentage;
-	private Queue<String> barCodeIdQueue;
-	private Queue<Integer> barCodeProductPrice;
 
-	public HeadUpDisplayStats() {
-		barCodeIdQueue = new LinkedList<>();
-		barCodeProductPrice = new LinkedList<>();
+	public HeadUpDisplayStats(String robotName) {
+		this.robotName = robotName;
 	}
 
+	public String getRobotName() {
+		return this.robotName;
+	}
+	
 	public boolean isBatteryLow() {
 		return isBatteryLow;
 	}
@@ -43,19 +43,4 @@ public class HeadUpDisplayStats {
 		setBatteryLow(batteryPercentage < RobotConst.BATTERY_LOW_PERCENTAGE? true : false);
 	}
 
-	public Queue<String> getBarCodeIdQueue() {
-		return barCodeIdQueue;
-	}
-
-	public void setBarCodeIdQueue(Queue<String> barCodeIdQueue) {
-		this.barCodeIdQueue = barCodeIdQueue;
-	}
-
-	public Queue<Integer> getBarCodeProductPrice() {
-		return barCodeProductPrice;
-	}
-
-	public void setBarCodeProductPrice(Queue<Integer> barCodeProductPrice) {
-		this.barCodeProductPrice = barCodeProductPrice;
-	}
 }
