@@ -17,7 +17,13 @@ import code.tasks.RobotTask;
 import code.util.BarCodeUtil;
 
 /**
- * Use CLI to test it
+ * Use CLI to test it.
+ * <pre>
+ * 	When prompted to choose command
+ *  Choose 3. Walk
+ *  Specify how many KM to walk
+ *  Then press 0 and enter again and again to see Robot's latest stats.
+ * </pre>
  * @author Anurag.Awasthi
  *
  */
