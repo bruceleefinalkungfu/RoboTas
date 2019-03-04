@@ -43,7 +43,7 @@ public class RobotTestCLI {
 	};
 	
 	public static Robot getRobot(String roboName) {
-		return new Robot.Builder().name(roboName).handleNumberOfParallelTasks(2).build();
+		return new Robot.Builder().name(roboName).handleNumberOfParallelTasks(10).build();
 	}
 	
 	public static void main(String[] args) {
