@@ -19,10 +19,11 @@ import java.util.Optional;
 public class RobotBarCodeScanTask extends StoppableRobotTask {
 
 	private BarCode barCode;
-	boolean taskFinished = false;
-	private double price = -1;
-	private boolean isValidBarCode;
+	volatile boolean taskFinished = false;
+	private volatile double price = -1;
+	private volatile boolean isValidBarCode;
 	private ScanBarCodeCallBack callBack;
+	private Object priceCalculatedLock;
 	
 	public RobotBarCodeScanTask(BarCode barCode) {
 		this(barCode, (e, f) -> {} );
@@ -33,6 +34,7 @@ public class RobotBarCodeScanTask extends StoppableRobotTask {
 		this.barCode = barCode;
 		this.isValidBarCode = true;
 		this.callBack = callBack;
+		this.priceCalculatedLock = new Object();
 	}
 
 	@Override
@@ -53,6 +55,9 @@ public class RobotBarCodeScanTask extends StoppableRobotTask {
 			isValidBarCode = false;
 		} finally {
 			taskFinished = true;
+			synchronized (priceCalculatedLock) {
+				priceCalculatedLock.notifyAll();
+			}
 		}
 	}
 
@@ -77,7 +82,16 @@ public class RobotBarCodeScanTask extends StoppableRobotTask {
 	 * @throws BarCodeException : It throws an exception if the bar code is invalid
 	 */
 	public double getPrice() throws BarCodeException {
-		while(price == -1 && isValidBarCode && !super.isTaskFinished());
+		synchronized (priceCalculatedLock) {
+			while( ! isTaskFinished() ) {
+				try {
+					priceCalculatedLock.wait(1000L);
+				} catch (InterruptedException e) {
+					throw new BarCodeException("Getting price of "+barCode.getBarCodeId()+" process got interrupted");
+				}
+			}
+		}
+		// while(price == -1 && isValidBarCode && !super.isTaskFinished());
 		if(isValidBarCode)
 			return price;
 		else
